@@ -1,0 +1,24 @@
+# Workflow
+
+```pgsql
+Auth Request
+   |
+   v
+Identity Provider (GCIP)
+   |
+   v
+Policy Enforcement (Cloud Function)
+   |
+Allow / Deny / Modify
+   |
+   v
+Token Issued
+```
+
+# Interview explanation
+
+In this project, GCP is used exclusively as the identity and authentication control plane. We use Google Cloud Identity Platform as an OIDC-compliant Identity Provider for user authentication, with Cloud Functions acting as policy enforcement points during user lifecycle events. The application itself runs on AWS EKS, consuming GCIP-issued tokens. CI/CD authentication to GCP is handled securely using Workload Identity with GitLab via OIDC, avoiding static credentials.
+
+## Interview short
+
+We use GCP for identity — GCIP provides OIDC-based authentication with custom policy hooks via Cloud Functions, while AWS handles the application and data plane.

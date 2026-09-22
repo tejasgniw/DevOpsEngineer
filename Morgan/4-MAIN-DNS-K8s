@@ -1,0 +1,60 @@
+Short summary — how DNS → UI works in this repo (exact mapping to Terraform resources)
+
+DNS
+Route53 record from module.domain_name resolves your hostname to the gateway ingress IPs published by module.gateway.ingress_ips (these are the EIPs created as aws_eip.this).
+Public-facing entry (NLB)
+
+A Network Load Balancer aws_lb.gateway (type = "network") is created in the public subnets (var.public_subnet_ids) with one EIP per subnet. Route53 points to those static EIPs.
+
+NLB listener aws_lb_listener.this listens on TCP/443 and forwards to a target group whose targets are the ALB (target_type = "alb", resource aws_lb_target_group.alb).
+
+TLS termination and application routing (ALB)
+An Application Load Balancer aws_lb.cluster (type = "application") exists and is attached as the NLB target. 
+The ALB has:
+- HTTPS listener aws_lb_listener.cluster on port 443 with ACM cert (var.certificate_arn),
+- Security group aws_security_group.lb_sg allowing 443 from 0.0.0.0/0,
+- WAF association aws_wafv2_web_acl_association for rate limiting/whitelisting.
+The ALB’s listener routes traffic (listener rule) to an ALB target group aws_lb_target_group.cluster (protocol HTTP port 80) which has the cluster targets.
+
+#### Port 80 Targetgroup binding in Cloud runtime services.
+apiVersion: "elbv2.k8s.aws/v1beta1"
+kind: TargetGroupBinding
+metadata:
+  name: istio-ingress
+  namespace: istio-ingress
+spec:
+  serviceRef:
+    name: istio-ingressgateway # k8s nodeport service to use
+    port: 80
+  targetGroupARN: {{ .Values.networking.clusterNodesTargetGroupArn }} # arn of the AWS EC2 targetgroup to register the k8s nodes as VMs
+  networking:
+    ingress:
+      - from:
+        - securityGroup:
+            groupID: {{ .Values.networking.clusterALBSecurityGroup }} # alb securitygroup to whitelist traffic in the instances sg 
+        ports:
+        - port: 0
+####
+
+ALB → Kubernetes (target group → nodes/pods)
+The ALB target group points to the cluster targets (node ports Port 80 in our case or pod IPs depending on your cluster ingress configuration). That target group is the entry into EKS worker nodes (which run in module.networking.private_app_subnet_ids_map).
+The cluster ingress controller / Service (deployed into EKS via GitOps) accepts the HTTP traffic and routes requests to the web-app pods. The above Target group binding shows that port 80 is being accepted from the ALB
+
+Response & egress
+Responses return from pods → nodes → ALB → NLB → client.
+Outbound traffic from pods (image pulls, external APIs) uses NAT Gateways in public subnets (unless VPC endpoints are configured).
+Health checks, scaling, and security
+NLB/ALB health checks keep only healthy targets in rotation (aws_lb_target_group health_check).
+EKS autoscaling changes node/pod capacity and target membership updates automatically.
+Security is enforced via ALB SG and internal SGs: ALB accepts public traffic, cluster SGs allow only ALB (and internal) traffic.
+
+One-line mapping to code:
+
+## External to NLB
+- Public L4 entry: aws_lb.gateway (NLB) + aws_eip.this (NLB/EIPs) ← Route53 (module.domain_name -> module.gateway.ingress_ips) here ingress_ips, EIPs are same
+
+## Alb to the cluster
+- TLS & app routing: aws_lb.cluster (ALB) + aws_lb_listener.cluster + aws_wafv2_web_acl_association
+
+## Cluster to the pod
+- Final targets: aws_lb_target_group.cluster → EKS ingress/service → pods (cluster in module.eks, subnets from module.networking)

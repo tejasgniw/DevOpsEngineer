@@ -1,0 +1,313 @@
+# Linux Interview Basics – Cheat Sheet
+
+This document covers **basic Linux interview questions**, commands, concepts, and common failure scenarios with fixes. Ideal for **DevOps / SRE / Platform / DevSecOps** interview prep.
+
+---
+
+## 1. File & Directory Basics
+
+### Root directories
+
+* `/` – Root filesystem
+* `/root` – Home directory of root user
+* `/home` – Home directories of normal users
+
+### Common commands
+
+```bash
+ls -la           # list all files (including hidden)
+pwd              # current directory
+cd /path         # change directory
+```
+
+### Disk usage
+
+```bash
+df -h            # filesystem usage
+du -sh /path     # directory size
+```
+
+### Find files
+
+```bash
+find / -name file.txt
+locate file.txt
+```
+
+---
+
+## 2. File Permissions & Ownership
+
+### Permission format
+
+```text
+-rwxr-x---
+```
+
+* Owner / Group / Others
+* r=4, w=2, x=1
+
+### Change permissions
+
+```bash
+chmod 755 file
+chmod u+x file
+```
+
+### Change ownership
+
+```bash
+chown user:group file
+```
+
+### umask
+
+* Default permission mask
+
+```bash
+umask
+```
+
+---
+
+## 3. Processes & System Monitoring
+
+### View processes
+
+```bash
+ps aux
+top
+htop
+```
+
+### Kill processes
+
+```bash
+kill PID
+kill -9 PID
+pkill nginx
+```
+
+### Zombie process
+
+* Process finished but parent didn’t clean it up
+* Fix: restart parent process
+
+---
+
+## 4. Networking Basics
+
+### Check open ports
+
+```bash
+ss -tulnp
+netstat -tulnp
+```
+
+### Connectivity testing
+
+```bash
+ping host
+curl http://url
+wget url
+telnet host port
+nc host port
+```
+
+### DNS
+
+```bash
+nslookup google.com
+dig google.com
+```
+
+---
+
+## 5. Disk & Filesystems
+
+### Mounting
+
+```bash
+mount
+umount /mnt
+```
+
+### /etc/fstab
+
+* Defines persistent mounts at boot
+
+---
+
+## 6. Logs & Debugging
+
+### Log locations
+
+* `/var/log`
+
+### View logs
+
+```bash
+tail -f /var/log/syslog
+journalctl -u service
+journalctl -xe
+```
+
+### journalctl
+
+* systemd log manager
+
+---
+
+## 7. Users & Groups
+
+### User management
+
+```bash
+useradd user
+passwd user
+```
+
+### Switch user
+
+```bash
+su - user
+sudo -i
+```
+
+### su vs sudo
+
+* `su` – switch user
+* `sudo` – run command as root
+
+---
+
+## 8. Package Management
+
+### Debian / Ubuntu
+
+```bash
+apt update
+apt install nginx
+```
+
+### RHEL / CentOS
+
+```bash
+yum install nginx
+dnf install nginx
+```
+
+---
+
+## 9. Environment Variables
+
+### Temporary
+
+```bash
+export VAR=value
+```
+
+### Persistent
+
+* `~/.bashrc`
+* `/etc/environment`
+
+---
+
+## 10. Bash Basics
+
+### Redirect output
+
+```bash
+cmd > out.txt
+cmd >> out.txt
+cmd 2>&1
+```
+
+### Pipes
+
+```bash
+ps aux | grep nginx
+```
+
+### Loop example
+
+```bash
+for i in {1..5}; do echo $i; done
+```
+
+---
+
+## 11. Services & systemd
+
+### systemd
+
+* Linux init system managing services
+
+### Service control
+
+```bash
+systemctl start nginx
+systemctl enable nginx
+systemctl status nginx
+```
+
+---
+
+## 12. Common Linux Failure Scenarios
+
+### Disk full
+
+```bash
+df -h
+du -sh /* | sort -h
+journalctl --vacuum-time=7d
+```
+
+### Service not starting
+
+```bash
+systemctl status service
+journalctl -xe
+```
+
+### High CPU usage
+
+```bash
+top
+ps aux --sort=-%cpu
+```
+
+### Permission denied
+
+* Check ownership
+* Check SELinux
+
+```bash
+getenforce
+```
+
+---
+
+## 13. Interview Power Statements
+
+> "If something fails on Linux, logs almost always tell the story."
+
+> "I usually check system resources, logs, and permissions before making changes."
+
+---
+
+## 14. Quick Command Reference
+
+| Command       | Purpose             |
+| ------------- | ------------------- |
+| grep          | Search text         |
+| awk           | Column processing   |
+| sed           | Stream editing      |
+| cron          | Scheduled jobs      |
+| nohup         | Run background job  |
+| screen / tmux | Persistent sessions |
+
+---
+
+**End of file**

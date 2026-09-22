@@ -1,0 +1,45 @@
+# Docker
+
+**Docker** is a platform that simplifies the management of application processes in containers and automates the deployment of applications inside lightweight and portable containers. **Kubernetes**, by contrast, is a container orchestration platform. Rather than building or deploying containers, Kubernetes coordinates, schedules, and manages already-created containers.
+
+Many organizations use **Docker** to create and manage containers and **Kubernetes** for orchestration. Docker and Kubernetes provide complementary technologies that work together to provide a complete solution for deploying, scaling, and managing containerized applications.
+
+![alt text](1770156582391.gif)
+
+## 1. Images
+
+From docker pull (download images) to docker build (create from Dockerfile) and docker tag (versioning), this is where containerization begins. Managing images is the foundation of every Docker workflow.
+
+## 2. Containers
+
+Commands like docker run, docker exec, and docker logs help you create, run, and debug containers. This is where Docker shifts from theory to practice, bringing applications to life.
+
+## 3. Build & Dockerfile
+
+docker build, --target, and --build-arg let you customize how images are built. Mastering this area means cleaner, more efficient Docker images.
+
+## 4. System & Cleanup
+
+Over time, Docker environments get cluttered. Commands like docker system prune and docker df keep your system lean and resource-friendly.
+
+## 5. Networking
+
+From docker network create to docker network inspect, networking is what lets containers talk to each other. Without it, Docker is just isolated boxes.
+
+## 6. Volumes & Storage
+
+Persistent data matters. Commands like docker volume create and docker volume prune ensure you don’t lose critical data (and don’t end up with disk bloat).
+
+## 7. Inspect & Debug
+
+Troubleshooting becomes easier with commands like docker inspect, docker events, and docker diff. They reveal what’s happening under the hood.
+
+## 8. Docker Swarm
+
+For clustering, commands like docker swarm init, docker service ls, and docker stack deploy scale containers across multiple nodes.
+
+## 9. Docker Compose
+
+Finally, the powerhouse for multi-container apps: docker-compose up, docker-compose down, and docker-compose exec simplify orchestration at the project level.
+
+Docker isn’t just a tool, it’s a workflow helper.

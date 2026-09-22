@@ -1,0 +1,382 @@
+# Core Kubernetes Concepts (Must-know)
+
+## Cluster Components
+
+![alt text](download.jpeg)
+
+- Cluster: A set of nodes managed by Kubernetes.
+
+- Control Plane: Brain of the cluster.
+
+- kube-apiserver: Entry point (kubectl, controllers, schedulers talk here).
+
+- etcd: Key-value store for cluster state.
+
+- kube-scheduler: Assigns Pods to Nodes.
+
+- kube-controller-manager: Reconciles desired vs actual state.
+
+- Node: Worker machine (VM or bare metal).
+
+- kubelet: Talks to API server, runs Pods.
+
+- container runtime: containerd / CRI-O.
+
+- kube-proxy: Networking rules (iptables/ipvs).
+
+## Workloads
+
+- Pod: Smallest deployable unit (1+ containers).
+
+- Deployment: Deployment is a higher-level abstraction built on top of ReplicaSets that uses ReplicaSets internally to manage applications. Recommended for stateless apps (web servers) requiring rolling updates/rollbackséversion control.
+
+- ReplicaSet: A ReplicaSet helps manage traffic by scaling your application to have multiple instances of the same pod.. Manages replica count; typically managed automatically by Deployments rather than used directly.
+
+- StatefulSet: StatefulSet is the controller that manages the deployment and scaling of a set of Stateful pods. A stateful pod in Kubernetes is a pod that requires persistent storage and a stable network identity to maintain its state all the time, even during pod restarts or rescheduling. These pods are commonly used for stateful applications such as databases or distributed file systems as these require a stable identity and persistent storage to maintain data consistency. Ideal for databases or stateful applications requiring unique, persistent identities (e.g., app-0, app-1) and persistent storage.
+
+- DaemonSet: A DaemonSet ensures that a single instance of a pod is running on each node in a cluster. (Used for collecting logs, monitoring). (e.g., logging agents like Fluentd or monitoring tools).
+
+- Job: One-time execution.
+
+- CronJob: Scheduled jobs.
+
+## Networking
+
+Service: Kubernetes (K8s) Services are REST objects that provide stable network endpoints (IP addresses and DNS names) for accessing a logical set of transient Pods. They abstract pod volatility, enabling internal service communication or external traffic exposure. The four primary types are ClusterIP, NodePort, LoadBalancer, and ExternalName, alongside Headless services
+
+- ClusterIP: Assigns an internal, cluster-only IP address. It is ideal for internal component communication (e.g., frontend to backend).
+
+- NodePort: Exposes the service on each Node's IP at a static port (30000–32767). It acts as an extension of ClusterIP, allowing external traffic to reach the service via <NodeIP>:<NodePort>.
+
+- LoadBalancer: Leverages cloud provider load balancers to expose the service externally. It automatically creates a NodePort and ClusterIP to route traffic, providing a public IP.
+
+- Ingress: 	An API object that defines rules for routing external HTTP/HTTPS traffic to internal cluster services. Layer 7 (HTTP/HTTPS) external access management.
+
+- Ingress Controller: An application that implements the Ingress rules, acting as a reverse proxy and load balancer to manage inbound external traffic. Manages external traffic and routes it to the appropriate services. e.g. NGINX, ALB, Traefik.
+
+- CNI: A framework and set of plugins (e.g., Calico, Flannel) that dynamically configure networking for Pods, ensuring Pod-to-Pod communication within the cluster. (Calico, Cilium, Flannel).
+
+kube-dns / CoreDNS: The cluster DNS service that enables service discovery, translating service names (e.g., my-service.my-namespace.svc.cluster.local) into stable cluster IP addresses. Internal name resolution for services within the cluster.
+
+## Storage
+
+- Volume: A Volume is a directory accessible to containers in a pod. Pod level storage.
+
+**Ephemeral**: Most basic volumes (like emptyDir) have the same lifecycle as the pod; if the pod is deleted, the data is lost.
+
+**Purpose**: They provide a way for containers within the same pod to share files and persist data across container restarts
+
+- PersistentVolume (PV): A Persistent Volume (PV) is a piece of storage in the cluster that has been provisioned by an administrator or dynamically through a StorageClass. Cluster level storage.
+
+**Lifecycle**: Unlike standard volumes, a PV's lifecycle is independent of any individual pod that uses it.
+
+**Abstraction**: It captures technical details of the storage implementation, such as NFS, iSCSI, or cloud-provider-specific systems.
+
+- PersistentVolumeClaim (PVC): A Persistent Volume Claim (PVC) is a request for storage by a user. Request for storage.
+
+**Consumption**: Just as a pod consumes node resources (CPU/Memory), a PVC consumes PV resources.
+
+**Binding**: When a user creates a PVC specifying size and access modes (e.g., ReadWriteOnce), Kubernetes looks for a matching PV and binds them together.
+
+- StorageClass: A StorageClass provides a way for administrators to describe the "classes" of storage they offer (e.g., "fast-ssd" vs "slow-hdd"). Dynamic provisioning
+
+**Dynamic Provisioning**: It allows PVs to be created automatically when a PVC is requested, eliminating the need for administrators to pre-provision storage manually.
+
+**Parameters**: Each StorageClass contains fields like provisioner and parameters that dictate how new volumes are created
+
+## PV vs PVC
+
+**Persistent Volumes** (PV) and **Persistent Volume Claims** (PVC) in Kubernetes decouple storage provisioning from consumption. A **PV** is a cluster-level storage resource (e.g., NFS, cloud disk) provisioned by administrators. A **PVC** is a user's request for that storage, allowing pods to mount persistent data that survives container restarts. 
+
+**Key Differences and Relationship**
+
+PV (Persistent Volume): Actual storage, managed by administrators, cluster-scoped.
+
+PVC (Persistent Volume Claim): A request for storage (size, access mode) made by a user/pod, namespace-scoped.
+
+**Workflow**: Pod -> PVC -> PV -> Actual Storage.
+
+**Provisioning**: Can be static (pre-provisioned by admin) or dynamic (created automatically via StorageClass).
+
+**Lifecycle**: When a pod is deleted, the PVC remains, and data persists, unlike regular volume mounts. 
+
+### Core Concepts
+
+**Binding**: The Kubernetes controller binds a PVC to a specific PV, making it exclusive to that claim.
+
+**Access Modes**: Defines how the storage is mounted (e.g., ReadWriteOnce - read/write by one node, ReadOnlyMany - read-only by many, ReadWriteMany - read/write by many).
+
+**Reclaim Policy**: Determines what happens to the PV after the PVC is deleted: Retain (manual cleanup), Delete (removes PV and backend storage), or Recycle (scrubbing).
+
+## Config & Secrets
+
+- ConfigMap: ConfigMaps store non-sensitive configuration (e.g., ports, config files) in plaintext. Non-sensitive config.
+
+- Secret: Secrets store sensitive data (e.g., passwords, keys, certificates), which are base64-encoded and offer better security, including optional encryption at rest. Sensitive data (base64 encoded, not encrypted by default).
+
+### Key Differences:
+
+- Sensitivity: ConfigMaps are for non-sensitive data; Secrets are for confidential information.
+
+- Storage: ConfigMaps are plaintext in etcd; Secrets are base64-encoded, which provides a slight abstraction but not encryption.
+
+- Security: Secrets can be encrypted at rest, whereas ConfigMaps are not.
+
+**Usage**: Both can be consumed by pods as environment variables, command-line arguments, or volume mounts.
+Size Limit: Both have a maximum size of 1 MiB. 
+
+**When to Use Which?**
+
+- ConfigMap: Use for app settings, database URLs, feature flags, or configuration files.
+
+- Secret: Use for API keys, user credentials, certificates, or OAuth tokens.
+
+Env vars vs volumes: Two ways to inject config.
+
+## Security
+
+- **RBAC**: In Kubernetes, RBAC manages who (human users or processes) can interact with the Kubernetes API and what actions they can perform (e.g., get, create, delete pods, secrets, services).
+Who can do what.
+
+**Key Components**:
+
+- Role/ClusterRole: A set of permissions defined as rules. A Role is namespace-specific, while a ClusterRole is cluster-wide.
+
+- RoleBinding/ClusterRoleBinding: An association that grants the permissions defined in a Role or ClusterRole to a user, group, or ServiceAccount.
+
+- Principle: RBAC helps enforce the principle of least privilege by ensuring users and processes only have the minimum permissions necessary to function, thereby reducing the impact of security breaches.
+
+- **ServiceAccount**: A ServiceAccount is a non-human user account intended for processes running within a pod to authenticate to the Kubernetes API server. Pod identity.
+
+Function: Pods use ServiceAccounts to obtain the necessary credentials (API tokens) to interact with other Kubernetes resources or the API itself.
+
+Integration with RBAC: RBAC is used to define the permissions associated with a ServiceAccount. A RoleBinding is created to link a specific Role (containing permissions) to a ServiceAccount within a namespace.
+
+Default Behavior: Every pod is automatically assigned a default ServiceAccount unless another is specified, but this default account has limited permissions unless explicitly granted more via RBAC.
+
+NetworkPolicy: A NetworkPolicy acts as a firewall for pods, controlling the network traffic flow between them and other network endpoints within the cluster. Pod-to-pod traffic rules.
+
+- mTLS: Service mesh security (Istio).
+
+## Scheduling & Resources
+
+- Requests: Guaranteed resources.
+
+- Limits: Max allowed usage.
+
+- Taints & Tolerations: Keep Pods off nodes.
+
+- NodeSelector / Affinity: Control placement.
+
+## Scaling & Availability
+
+HPA: Auto-scale Pods.
+
+VPA: Adjust resource requests.
+
+Cluster Autoscaler: Adds/removes nodes.
+
+PDB (Pod disruption budget): Prevents too many Pods being evicted.
+
+# Common Kubernetes Failure Scenarios (Interview Gold)
+
+## 1. Pod stuck in Pending
+
+Causes:
+
+- No nodes with enough CPU/memory
+- NodeSelector / affinity mismatch
+- PVC not bound
+
+Debug:
+
+```
+kubectl describe pod <pod>
+kubectl get nodes
+kubectl get pvc
+```
+
+Fix:
+
+- Increase node capacity
+- Fix resource requests
+- Fix StorageClass / PVC
+
+## 2. Pod in CrashLoopBackOff
+
+Causes:
+
+- App crashes on startup
+- Wrong env vars
+- Bad command/entrypoint
+
+Debug:
+
+```
+kubectl logs pod --previous
+kubectl describe pod
+```
+
+Fix:
+
+- Fix app config
+- Add proper health checks
+- Delay startup (initContainers)
+
+## 3. Pod stuck in ImagePullBackOff
+
+Causes:
+
+- Wrong image tag
+- Registry auth issue
+
+Debug:
+
+```
+kubectl describe pod
+```
+
+Fix:
+
+- Fix image name
+- Add imagePullSecrets
+- Check registry permissions
+
+## 4. Service not reachable
+
+Causes:
+
+- Wrong selector labels
+- App not listening on correct port
+- NetworkPolicy blocking traffic
+
+Debug:
+
+```
+kubectl get svc
+kubectl get endpoints
+kubectl exec -it pod -- curl service
+```
+
+Fix:
+
+- Fix labels
+- Fix container port
+- Update NetworkPolicy
+
+## 5. Ingress returns 404 / 502
+
+Causes:
+
+- Wrong host/path
+- Backend service misconfigured
+- TLS issue
+
+Debug:
+
+```
+kubectl describe ingress
+kubectl logs ingress-controller
+```
+
+Fix:
+
+- Fix paths
+- Fix Service name/port
+- Fix certs
+
+## 6. Pods getting OOMKilled
+
+Causes:
+
+- Memory limit too low
+- Memory leak
+
+Debug:
+
+```
+kubectl describe pod
+```
+
+Fix:
+
+- Increase limits
+- Tune app memory
+- Use VPA
+
+## 7. Node in NotReady
+
+Causes:
+
+- kubelet down
+- Disk pressure
+- Network issues
+
+Debug:
+
+```
+kubectl describe node
+```
+
+Fix:
+
+- Restart kubelet
+- Clean disk
+
+Fix CNI
+
+## 8. DNS not working
+
+Causes:
+
+- CoreDNS down
+- NetworkPolicy blocking UDP 53
+
+Debug:
+
+```
+kubectl get pods -n kube-system
+kubectl exec pod -- nslookup service
+```
+
+Fix:
+
+- Restart CoreDNS
+- Fix policies
+
+
+# Production Debugging Flow (Say this in interviews)
+
+- Check Pod status
+- Describe the resource
+- Check logs
+- Verify config (env, secrets, mounts)
+- Validate networking
+- Check node health
+- Rollback if needed
+
+This shows calm, senior-level thinking.
+
+# Advanced Topics Interviewers Love
+
+Rolling updates vs blue/green vs canary
+
+Readiness vs liveness probes
+
+GitOps (Argo CD)
+
+CRDs & operators
+
+Multi-cluster strategies
+
+Zero-downtime deployments
+
+Secret encryption with KMS
+
+RBAC least privilege
+
+Disaster recovery (etcd backups)
+
+# One Killer Interview Line (Use this)
+
+“In production, I always start by validating the desired state versus the actual state in Kubernetes, then narrow down whether the issue is scheduling, configuration, networking, or application-level.”

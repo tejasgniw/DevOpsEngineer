@@ -1,0 +1,301 @@
+# Bash Interview Preparation Notes
+
+Author: Krishna Teja  
+Role: DevOps / DevSecOps Engineer
+
+---
+
+## 🐚 Bash Basics
+
+### 1. What is Bash?
+Bash (Bourne Again SHell) is a command-line interpreter and scripting language used in Linux/Unix systems to execute commands and automate tasks.
+
+---
+
+### 2. Difference between `bash` and `sh`
+| `sh` | `bash` |
+|------|--------|
+| Original Bourne shell | Enhanced version |
+| Limited features | Arrays, brace expansion, history |
+| More portable | More powerful |
+
+---
+
+### 3. What is a shell script?
+A file containing a sequence of shell commands executed by the shell.
+
+Example:
+```bash
+#!/bin/bash
+echo "Hello World"
+```
+
+### 4. What is the shebang (#!)?
+
+It tells the OS which interpreter to use for the script.
+
+Example:
+```bash
+#!/bin/bash
+#!/usr/bin/env bash
+```
+
+### 5. Make a script executable
+
+Example:
+```bash
+chmod +x script.sh
+```
+
+## Variables & Environment
+
+### 6. Define and use a variable
+
+Example:
+```bash
+name="Krishna"
+echo $name
+```
+
+### 7. Local vs Environment Variables
+
+Example:
+```bash
+VAR=value          # local
+export VAR=value   # environment
+```
+
+### 8. List environment variables
+
+Example:
+```bash
+env
+printenv
+```
+
+### 9. $PATH
+
+A list of directories where executables are searched.
+
+Example:
+```bash
+echo $PATH
+```
+
+## Permissions & Execution
+
+### 10. Script fails with “Permission denied”
+
+Example:
+```bash
+chmod +x script.sh
+```
+
+### 11. Difference between ./script.sh and bash script.sh
+
+| Method           | Needs execute permission? |
+| ---------------- | ------------------------- |
+| `./script.sh`    | ✅ Yes                     |
+| `bash script.sh` | ❌ No                      |
+
+## Input / Output & Redirection
+
+### 12. stdin, stdout, stderr
+
+| Stream | FD | Description   |
+| ------ | -- | ------------- |
+| stdin  | 0  | input         |
+| stdout | 1  | normal output |
+| stderr | 2  | errors        |
+
+
+### 13. Output redirection
+
+Example:
+```bash
+command > file      # overwrite
+command >> file     # append
+```
+
+### 14. Redirect stderr
+
+Example:
+```bash
+command 2> error.log
+command > all.log 2>&1
+```
+
+### 15. Pipe (|)
+
+Passes output of one command as input to another.
+
+Example:
+```bash
+ps aux | grep nginx
+```
+
+## Conditions & Loops
+
+### 16. If condition
+
+Example:
+```bash
+if [ "$a" -gt 10 ]; then
+  echo "Greater"
+else
+  echo "Smaller"
+fi
+```
+
+### 17. [ ] vs [[ ]]
+
+| `[ ]`           | `[[ ]]`                           |
+| --------------- | --------------------------------- |
+| POSIX compliant | Bash-specific                     |
+| Less safe       | Supports regex, safer with spaces |
+| Needs quoting   | Handles spaces better             |
+
+
+### 18. For loop
+
+```bash
+for i in 1 2 3; do
+  echo $i
+done
+```
+
+### 19. While loop
+
+```bash
+while read line; do
+  echo $line
+done < file.txt
+```
+
+## Functions
+
+### 20. Define a function
+
+```bash
+my_func() {
+  echo "Hello"
+}
+```
+
+### 21. Pass arguments to function
+
+```bash
+my_func() {
+  echo $1
+}
+my_func Krishna
+```
+
+## Process & Job Control
+
+### 22. What is a process?
+
+An instance of a running program with a PID.
+
+### 23. Foreground vs Background
+
+```bash
+command        # foreground
+command &      # background
+```
+
+### 24. Kill a process
+
+```bash
+kill PID
+kill -9 PID
+pkill nginx
+```
+
+### 25. nohup
+
+Keeps a process running after logout.
+
+```bash
+nohup command &
+```
+
+## Exit Codes & Debugging
+
+### 26. $?
+
+Exit status of last command:
+
+- 0 = success
+- Non-zero = failure
+
+### 27. Debug a Bash script
+
+```bash
+bash -x script.sh
+set -x
+set -e
+```
+
+### 28. set -e
+
+Exit immediately if a command fails.
+
+### 29. set -euo pipefail
+
+- -e → exit on error
+- -u → undefined variable error
+- pipefail → catch pipe errors
+
+## File & Text Processing
+
+### 30. grep awk sed
+
+| Tool | Purpose                 |
+| ---- | ----------------------- |
+| grep | Search text             |
+| awk  | Column-based processing |
+| sed  | Stream editing          |
+
+
+### 31. Count lines in a file
+
+```bash
+wc -l file.txt
+```
+
+### 32. Find files older than 7 days
+
+```bash
+find /path -type f -mtime +7
+```
+
+## Real DevOps Scenarios
+
+### 33. Script fails in CI but works locally
+
+- Different shell (sh vs bash)
+- Missing environment variables
+- File permissions
+- Different PATH
+
+### 34. Wait for a service to be ready
+
+```bash
+until curl -sf http://localhost:8080; do
+  sleep 5
+done
+```
+
+### 35. Safe scripting practices
+
+- Always use set -euo pipefail
+- Validate inputs
+- Log errors to stderr
+- Avoid hardcoding paths when possible
+
+## Interview Tip
+
+```
+I write defensive Bash scripts using set -euo pipefail, validate inputs, and always log errors to stderr. I focus on reliability, readability, and maintainability, especially in CI/CD pipelines and containerized environments.
+```
