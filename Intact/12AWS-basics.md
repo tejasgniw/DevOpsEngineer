@@ -4,13 +4,13 @@ Subnet level
 Instance level
 
 ## Inbound traffic (request flow from internet to resources)
-Internet -> IGW(VPC) -> Public subnet -> Load balancer(Public subnet) -> Target group(VPC) -> route table(VPC) -> private subnet(VPC) -> Security group(Instance) -> resources (private subnet)
+Internet -> IGW(attached to VPC) -> Public subnet -> Load balancer(Public subnet) -> Target group(VPC) -> route table(VPC) -> private subnet(VPC) -> Security group(Instance) -> resources (private subnet)
 
 Internet➡️ Internet Gateway (IGW)➡️ Public Subnet (Where your public-facing load balancer lives)➡️ Load Balancer (Receives the traffic, evaluates its listener rules, and forwards it to a Target Group)➡️ Target Group (Applies health checks and routing logic to select a specific backend resource)➡️ Route Table (Directs the forwarded traffic from the public subnet to the private subnet)➡️ Private Subnet➡️ Security Group (Firewall that permits or denies the traffic entering the resource)➡️ Resources (Your EC2 instances, ECS tasks, etc.)
 
 ## Outbound traffic (request flow from application to internet)
 
-Application(private subnet) -> Security group(Instance) -> Route table(VPC) -> Firewall inspection/Gateway Load Balancer(Public subnet) -> NAT Gateway(Public subnet) -> IGW(VPC) -> Internet
+Application(private subnet) -> Security group(Instance) -> Route table(VPC) -> Firewall inspection/Gateway Load Balancer(Public subnet) -> NAT Gateway(Public subnet) -> IGW(attached to VPC) -> Internet
 
 
 # Others
@@ -38,11 +38,11 @@ Route53 -> Hosted zone -> DNS records -> Ip address(LB)
 # AWS Project
 
 - Create a VPC with multi AZ.
-- Create an A**utoscaling group** with a launch template(Use above VPC) in the private subnets.
+- Create an **Autoscaling group** with a launch template(Use above VPC) in the private subnets.
 - Create a Bastion host in the public subnet(Use above VPC) with a public address.
 - SCP the pem file to the bastion host.
 - Test ssh using the Private IP of the EC2 instances created in the private subnet from the bastion host in public subnet.
-- Create a target group, like launch templates(Use above VPC and EC2 instances) with the right port the application is exposing in the private subnet.
+- Create a target group, using launch templates(Use above created VPC and EC2 instances) with the right port the application is exposing in the private subnet.
 - Create ALB(L7), Internet facing in the public subnet, having access from the IGW selecting the above target group.
 - Make sure open the ports in security groups as needed.
 
@@ -132,9 +132,9 @@ Placing an NLB in front of an ALB gives you the "best of both worlds." You combi
 
 The core advantages of this architecture include:
 
-## 🌐 1. Static IP Addresses(EIP) for Client WhitelistingThe Problem: 
+## 🌐 1. Static IP Addresses(EIP) for Client Whitelisting: 
 
-- An ALB's IP addresses change dynamically as AWS scales it up or down. If your corporate clients have strict firewalls and require a single, unchanging IP address (or range) to whitelist, you cannot give them an ALB URL
+- An ALB's IP addresses change dynamically as AWS scales it up or down. If your corporate clients have strict firewalls and require a single, unchanging IP address (or range) to whitelist(IP whitelisting (also called IP allowlisting) is a security measure that allows only approved IP addresses or ranges to connect to a network, server, or application, while blocking all other traffic by default), you cannot give them an ALB URL
 
 - The Solution: An NLB provides fixed, static Elastic IPs (**one per Availability Zone**) that never change. Clients whitelist these static IPs, and the NLB seamlessly forwards the traffic to your dynamic ALB backend.
 
@@ -214,11 +214,11 @@ The gateway implementation is in terraform/modules/gateway/main.tf.
 Important details:
 
 The NLB is internet-facing.
-Each public subnet receives an Elastic IP.
+Each public subnet in an AZ receives an Elastic IP.
 Route 53 returns those Elastic IPs through an A record.
 The NLB listener accepts TCP 443.
 The NLB forwards traffic to the ALB on TCP 443.
-The ALB terminates TLS using an ACM certificate.
+The ALB **terminates TLS using an ACM certificate.**
 The ALB forwards HTTP traffic to the EKS cluster target group.
 The target group is configured for the cluster’s NodePort.
 WAF is associated with the ALB.

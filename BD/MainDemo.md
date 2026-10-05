@@ -104,6 +104,21 @@ Azure Key Vault
 Azure Monitor
 Azure DevOps vs GitHub Actions
 
+| Azure concept        | Quick definition                                                                                                          | AWS equivalent                                                                  |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| **Resource Group**   | Logical container used to organize and manage related Azure resources together.                                           | Roughly CloudFormation stack / organizational grouping, **no exact equivalent** |
+| **VNet**             | Private network in Azure where resources communicate with each other.                                                     | **VPC**                                                                         |
+| **Subnet**           | A smaller network segment inside a VNet used to organize/isolate resources.                                               | **VPC Subnet**                                                                  |
+| **NSG**              | Network Security Group; contains inbound/outbound traffic rules controlling network access to resources/subnets.          | **Security Group** (closest)                                                    |
+| **Private IP**       | Internal IP address used for communication within a VNet/private network.                                                 | **Private IP on ENI**                                                           |
+| **Public IP**        | Internet-routable IP address assigned to a resource when external access is required.                                     | **Elastic/Public IP**                                                           |
+| **Managed Identity** | Azure-managed identity that lets a resource authenticate to other Azure services **without storing credentials/secrets**. | Roughly **IAM Role attached to EC2**                                            |
+| **Azure Storage**    | Azure's storage services for objects/files/disks/queues, etc. Blob Storage is commonly used for objects.                  | **S3** for Blob Storage                                                         |
+| **Azure VM**         | Virtual machine running an OS such as Windows or Linux in Azure.                                                          | **EC2**                                                                         |
+| **Azure Key Vault**  | Securely stores and manages secrets, keys and certificates.                                                               | Roughly **AWS Secrets Manager + KMS**                                           |
+| **Azure Monitor**    | Azure's monitoring/observability platform for metrics, logs, alerts and application/resource health.                      | **CloudWatch**                                                                  |
+
+
 
 ## AWS vs Azure
 
@@ -146,7 +161,19 @@ VM
 ![alt text](image-2.png)
 
 
+## How It Works
+- Dedicated Hardware: AVS runs on dedicated, bare-metal Azure infrastructure (hyperconverged hosts) isolated for your organization.
+
+- Native Stack: Every private cloud comes pre-configured with the full VMware stack: vSphere (compute), vSAN (storage), NSX (networking), and vCenter (management).
+
+- License Portability: You bring your own portable VMware Cloud Foundation (VCF) subscription and license keys from Broadcom.
+
+- Microsoft Management: Microsoft manages and maintains the physical infrastructure, patching, and lifecycle upgrades.
+
 ## Simple model:
+
+**Azure VMware Solution** (AVS) is a fully managed Microsoft service that lets you run your VMware workloads natively in the Microsoft Azure cloud.
+
 ```
 
                     Azure
