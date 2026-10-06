@@ -156,7 +156,7 @@ backup → mysqldump → backup file → mysql
 
 ## Okay, but how do you know the restore actually worked?
 
-I would validate at multiple levels. First, the restore operation itself should return successfully. Then I'd validate database connectivity, verify that the expected schema and tables exist, optionally verify expected record counts or a known application-specific data point, and finally run an application health check against the restored database.
+I would validate at multiple levels. First, the restore operation itself should return successfully. Then I'd validate(**Validate DNS Resolution: nslookup**) database connectivity, verify that the expected schema and tables exist, optionally verify expected record counts or a known application-specific data point, and finally run an application health check against the restored database.
 
 
 # 6. Think in validation layers

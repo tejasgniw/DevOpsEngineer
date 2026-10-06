@@ -12,6 +12,9 @@ Then:
 
 Assuming each environment is self-contained and needs to support one application version, I'd separate the solution into image creation, infrastructure provisioning, configuration/data initialization and lifecycle management.
 
+I wouldn't expect a salesperson to run Terraform. I'd expose a controlled workflow through GitHub Actions, potentially triggered through the GitHub API, where the user selects an environment/version and the automation handles provisioning, validation and reset.
+
+
 ```
                  GitHub
                     │
@@ -144,6 +147,7 @@ DESTROY    → Remove infrastructure
 
 ### How would you prevent users from accidentally destroying environments?
 
+I would keep multiple layers of protection:
 - CI level: Keep destroy as a separate protected job; require manual approval and restrict it to Maintainers, not Developers.
 - Terraform level: Use separate workspaces/state files per environment, with remote state + locking to prevent accidental cross-environment changes.
 - IAM level: Apply least-privilege Azure RBAC/managed identities; the CI identity should only have the permissions required for its job.
@@ -154,7 +158,7 @@ DESTROY    → Remove infrastructure
 
 ### How do you structure Terraform modules?
 
-- I’d create small, reusable modules around logical components like networking, VM, and database.
+- I’d create small, reusable versionized modules around logical components like networking, VM, and database.
 - A higher-level demo-environment module composes those modules into one complete environment.
 - Environment-specific values are passed through variables, rather than duplicating Terraform code.
 - Keep state separate per environment and use remote state with locking.
